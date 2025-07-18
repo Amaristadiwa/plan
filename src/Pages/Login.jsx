@@ -34,7 +34,7 @@ export default function Login() {
     if (role === "admin") {
       navigate("/admin");
     } else {
-      navigate("/home"); // or /vendor-dashboard, /couple-dashboard
+      navigate("/couple-dashboard"); // or /vendor-dashboard, /couple-dashboard
     }
   };
 

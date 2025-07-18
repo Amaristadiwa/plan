@@ -44,7 +44,7 @@ const handleSubmit = (e) => {
   if (role === "admin") {
     navigate("/admin");
   } else {
-    navigate("/login");
+    navigate("/couple-dashboard");
   }
 };
 

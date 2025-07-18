@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip
@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem("role");
@@ -36,24 +37,108 @@ export default function AdminDashboard() {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
+  // Close mobile menu on navigation (optional)
+  const handleLinkClick = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-white transition">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-gray-800 shadow-lg p-6">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex md:flex-col w-64 bg-white dark:bg-gray-800 shadow-lg p-6">
         <h2 className="text-2xl font-bold text-pink-600 mb-8">Wedding Admin</h2>
         <nav className="space-y-4">
-          <a href="#" className="block text-pink-600 font-semibold">Dashboard</a>
-          <a href="#" className="block hover:text-pink-500">Users</a>
-          <a href="#" className="block hover:text-pink-500">Vendors</a>
-          <a href="#" className="block hover:text-pink-500">Weddings</a>
-          <a href="#" className="block hover:text-pink-500">Settings</a>
+          <Link to="/admin" className="block text-pink-600 font-semibold">Dashboard</Link>
+          <Link to="/admin/users" className="block hover:text-pink-500">Users</Link>
+          <Link to="/admin/vendors" className="block hover:text-pink-500">Vendors</Link>
+          <Link to="/admin/weddings" className="block hover:text-pink-500">Weddings</Link>
+          <Link to="/admin/settings" className="block hover:text-pink-500">Settings</Link>
         </nav>
       </aside>
 
+      {/* Mobile Sidebar Drawer */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 flex"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Sidebar panel */}
+          <aside className="relative flex flex-col w-64 bg-white dark:bg-gray-800 shadow-lg p-6">
+            <button
+              className="self-end mb-4 text-pink-600 hover:text-pink-800"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl font-bold text-pink-600 mb-8">Wedding Admin</h2>
+            <nav className="space-y-4">
+              <Link to="/admin" onClick={handleLinkClick} className="block text-pink-600 font-semibold">Dashboard</Link>
+              <Link to="/admin/users" onClick={handleLinkClick} className="block hover:text-pink-500">Users</Link>
+              <Link to="/admin/vendors" onClick={handleLinkClick} className="block hover:text-pink-500">Vendors</Link>
+              <Link to="/admin/weddings" onClick={handleLinkClick} className="block hover:text-pink-500">Weddings</Link>
+              <Link to="/admin/settings" onClick={handleLinkClick} className="block hover:text-pink-500">Settings</Link>
+            </nav>
+          </aside>
+        </div>
+      )}
+
+      {/* Mobile Top Navbar */}
+      <nav className="md:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center w-full fixed top-0 left-0 z-50">
+        {/* Hamburger Button */}
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="text-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-300 rounded"
+          aria-label="Open menu"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+          >
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+
+        <h2 className="text-xl font-bold text-pink-600">Wedding Admin</h2>
+
+        <div className="space-x-4 flex items-center">
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="bg-pink-500 px-3 py-1 rounded-full text-white text-sm"
+          >
+            {darkMode ? "Light" : "Dark"}
+          </button>
+          <button
+            onClick={() => {
+              localStorage.removeItem("role");
+              navigate("/login");
+            }}
+            className="text-sm text-pink-600 underline"
+          >
+            Logout
+          </button>
+        </div>
+      </nav>
+
       {/* Main Content */}
-      <main className="flex-1 p-10">
-        {/* Top Navbar */}
-        <div className="flex justify-between items-center mb-8">
+      <main className="flex-1 pt-20 md:pt-10 px-4 md:px-10 overflow-auto">
+        {/* Top Navbar (hidden on mobile since mobile has fixed navbar) */}
+        <div className="hidden md:flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-pink-600">Admin Dashboard</h1>
           <div className="flex items-center space-x-4">
             <input
@@ -80,24 +165,33 @@ export default function AdminDashboard() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 mb-6">
-          <button onClick={() => setShowVendorModal(true)} className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <button
+            onClick={() => setShowVendorModal(true)}
+            className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 w-full sm:w-auto"
+          >
             + Add Vendor
           </button>
-          <button onClick={() => setShowUserModal(true)} className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">
+          <button
+            onClick={() => setShowUserModal(true)}
+            className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 w-full sm:w-auto"
+          >
             + Add User
           </button>
         </div>
 
         {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
           {[
             { label: "Total Users", value: 120 },
             { label: "Vendors", value: 35 },
             { label: "Weddings Planned", value: 47 },
             { label: "Pending Requests", value: 8 },
           ].map((card, i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center">
+            <div
+              key={i}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center"
+            >
               <h3 className="text-sm text-gray-500 dark:text-gray-300">{card.label}</h3>
               <p className="text-3xl font-bold text-pink-600 mt-2">{card.value}</p>
             </div>
@@ -144,11 +238,17 @@ export default function AdminDashboard() {
 
       {/* Modals */}
       {showVendorModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full">
             <h2 className="text-xl font-bold text-pink-600 mb-4">Add Vendor</h2>
-            <input placeholder="Vendor Name" className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:border-gray-600" />
-            <button onClick={() => setShowVendorModal(false)} className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded dark:bg-gray-700 dark:text-white">
+            <input
+              placeholder="Vendor Name"
+              className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <button
+              onClick={() => setShowVendorModal(false)}
+              className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded dark:bg-gray-700 dark:text-white"
+            >
               Close
             </button>
           </div>
@@ -156,11 +256,17 @@ export default function AdminDashboard() {
       )}
 
       {showUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full">
             <h2 className="text-xl font-bold text-pink-600 mb-4">Add User</h2>
-            <input placeholder="User Name" className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:border-gray-600" />
-            <button onClick={() => setShowUserModal(false)} className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded dark:bg-gray-700 dark:text-white">
+            <input
+              placeholder="User Name"
+              className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <button
+              onClick={() => setShowUserModal(false)}
+              className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded dark:bg-gray-700 dark:text-white"
+            >
               Close
             </button>
           </div>
@@ -169,3 +275,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
