@@ -25,6 +25,10 @@ import Theme from "./Pages/Theme";
 import Budget from "./Pages/Budget";
 import PlanningSummary from "./Pages/PlanningSummary";
 import './index.css'
+import Plan from "./Pages/Plan";
+import Vendor from "./Pages/Vendor";
+import Budgets from "./Pages/Budgets";
+import Setting from "./Pages/Setting";
 export default function App() {
   return (
     
@@ -53,6 +57,13 @@ export default function App() {
         <Route path="/theme" element={<Theme />} />
         <Route path="/budget" element={<Budget />} />
         <Route path="/planning-summary" element={<PlanningSummary />} />
+        <Route path="/plan" element={<Plan />} />
+        <Route path="/vendor" element={<Vendor />} />
+        <Route path="/budgets" element={<Budgets />} />
+        <Route path="/setting" element={<Setting />} />
+        
+
+        {/* Vendor Dashboard pages */}
       </Routes>
    
   );
