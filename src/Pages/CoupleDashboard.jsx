@@ -2,15 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Circle } from "rc-progress";
+import { Menu } from "lucide-react";
 import Sidebar from "../components/Sidebar";
-import { Menu } from "lucide-react"; // Hamburger icon
 
 export default function CoupleDashboard() {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
   const [completedSteps, setCompletedSteps] = useState(2);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const weddingDate = new Date("2025-12-20");
   const today = new Date();
@@ -34,40 +34,31 @@ export default function CoupleDashboard() {
   const completionPercent = (completedSteps / totalSteps) * 100;
 
   return (
-    <div className="min-h-screen flex bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-white transition relative">
+    <div className="min-h-screen flex bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-white transition">
       {/* Sidebar */}
-      <div
-        className={`
-          fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out
-          bg-white dark:bg-gray-800 shadow-lg w-64
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:relative md:translate-x-0 md:block
-        `}
-      >
-        <Sidebar />
-      </div>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Overlay for mobile sidebar */}
+      {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
-          onClick={() => setIsSidebarOpen(false)}
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Main Content */}
-      <main className="flex-1 pt-20 px-4 sm:px-6 lg:px-10">
+      <main className="flex-1 pt-20 px-4 sm:px-6 lg:px-10 md:ml-64 transition-all">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          {/* Mobile Hamburger */}
+          {/* Mobile Menu Button */}
           <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            onClick={() => setIsSidebarOpen(true)}
             className="md:hidden p-2 rounded-md text-pink-600 focus:outline-none"
           >
             <Menu size={28} />
           </button>
 
-          {/* Title and countdown */}
+          {/* Welcome Message */}
           <div className="text-center md:text-left flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-pink-600 mb-1">
               Welcome to Your Wedding Hub
@@ -75,7 +66,7 @@ export default function CoupleDashboard() {
             <p className="text-base sm:text-lg">🎉 {daysLeft} days until your big day!</p>
           </div>
 
-          {/* Dark mode toggle */}
+          {/* Dark Mode Toggle (Desktop only) */}
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="hidden md:inline bg-pink-500 px-4 py-2 text-white rounded-full text-sm hover:bg-pink-600 transition"
@@ -111,7 +102,7 @@ export default function CoupleDashboard() {
           </Link>
         </div>
 
-        {/* Planning Progress Section */}
+        {/* Planning Progress */}
         {!showSteps ? (
           <div className="text-center px-4">
             <p className="mb-6 text-base sm:text-lg">Get started with planning your dream wedding 🎉</p>
@@ -139,10 +130,12 @@ export default function CoupleDashboard() {
             </div>
           </div>
         ) : (
-          <div>{/* Steps Content */}</div>
+          <div>{/* Optional additional steps UI */}</div>
         )}
       </main>
     </div>
   );
 }
+
+
 

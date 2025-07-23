@@ -1,4 +1,3 @@
-// ✅ Reminders.jsx (Instant UI update on add)
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, addDoc, getDocs } from "firebase/firestore";
@@ -22,7 +21,7 @@ export default function Reminders() {
 
     await addDoc(reminderRef, newReminder);
 
-    // Update UI instantly with new reminder
+    // Update UI instantly
     setReminders((prev) => [newReminder, ...prev]);
 
     setReminderText("");
@@ -34,10 +33,11 @@ export default function Reminders() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-pink-50 dark:bg-gray-900 text-gray-900 dark:text-white flex">
+    <div className="min-h-screen bg-pink-50 dark:bg-gray-900 text-gray-900 dark:text-white flex flex-col md:flex-row">
       <Sidebar />
-      <main className="flex-1 ml-64 p-8 md:p-12">
-        <h1 className="text-3xl font-extrabold text-pink-600 mb-8 tracking-wide">
+
+      <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-12 md:ml-64">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-pink-600 mb-6">
           Reminders
         </h1>
 
@@ -46,43 +46,44 @@ export default function Reminders() {
             e.preventDefault();
             addReminder();
           }}
-          className="flex flex-col md:flex-row gap-4 mb-10 max-w-3xl"
+          className="flex flex-col sm:flex-row gap-4 mb-8 w-full max-w-4xl"
         >
           <input
             value={reminderText}
             onChange={(e) => setReminderText(e.target.value)}
             placeholder="Enter reminder..."
-            className="flex-1 px-5 py-3 rounded-lg border border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+            className="w-full flex-1 px-4 py-3 rounded-lg border border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-500 transition text-sm sm:text-base"
             required
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="px-5 py-3 rounded-lg border border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+            className="px-4 py-3 rounded-lg border border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-500 transition text-sm sm:text-base"
             required
           />
           <button
             type="submit"
-            className="bg-pink-600 hover:bg-pink-700 transition text-white font-semibold px-6 py-3 rounded-lg shadow-md"
+            className="bg-pink-600 hover:bg-pink-700 transition text-white font-semibold px-6 py-3 rounded-lg shadow-md text-sm sm:text-base"
           >
-            Add Reminder
+            Add
           </button>
         </form>
 
-        <ul className="space-y-5 max-w-3xl">
+        <ul className="space-y-4 max-w-4xl w-full">
           {reminders.length === 0 && (
             <p className="text-gray-600 dark:text-gray-400">
               No reminders yet. Add one above!
             </p>
           )}
+
           {reminders.map((rem, idx) => (
             <li
               key={idx}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition"
+              className="bg-white dark:bg-gray-800 rounded-xl p-5 sm:p-6 shadow-md hover:shadow-lg transition"
             >
-              <p className="text-lg font-semibold text-pink-600">{rem.text}</p>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-base sm:text-lg font-semibold text-pink-600">{rem.text}</p>
+              <p className="mt-1 text-sm sm:text-base text-gray-500 dark:text-gray-400">
                 {new Date(rem.date).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "long",
@@ -96,4 +97,5 @@ export default function Reminders() {
     </div>
   );
 }
+
 

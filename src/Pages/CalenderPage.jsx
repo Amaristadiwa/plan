@@ -7,27 +7,30 @@ import Sidebar from "../components/Sidebar";
 
 export default function CalendarPage() {
   const [date, setDate] = useState(new Date());
-  <CalendarWidget onDateSelect={(date) => console.log("Selected:", date)} />
 
   return (
-    <div className="min-h-screen bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-white">
+    <div className="min-h-screen bg-pink-50 text-gray-800 dark:bg-gray-900 dark:text-white flex flex-col md:flex-row">
       <Sidebar />
 
-      {/* Page Content pushed to the right */}
-      <main className="ml-64 p-6">
-        <h1 className="text-2xl font-bold mb-4 text-pink-600">Calendar</h1>
-        <div className="bg-white rounded-lg shadow-md p-4 w-fit">
+      {/* Page Content */}
+      <main className="flex-1 p-4 md:p-8 md:ml-64">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-pink-600">
+          Calendar
+        </h1>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 w-full max-w-md mx-auto">
           <Calendar
             onChange={setDate}
             value={date}
+            className="w-full"
           />
-          <p className="mt-4 font-medium">Selected Date: {date.toDateString()}</p>
+          <p className="mt-4 text-center font-medium text-sm md:text-base">
+            Selected Date: {date.toDateString()}
+          </p>
         </div>
-
-        {/* Optional: CalendarWidget if you still want to use it */}
-        {/* <CalendarWidget onDateSelect={(date) => console.log("Selected:", date)} /> */}
       </main>
     </div>
   );
 }
+
 

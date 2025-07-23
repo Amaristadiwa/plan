@@ -11,6 +11,7 @@ import {
   query,
 } from "firebase/firestore";
 import Sidebar from "../components/Sidebar";
+import { Menu } from "lucide-react";
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState([]);
@@ -19,6 +20,7 @@ export default function TaskManager() {
   const [dueDate, setDueDate] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const taskRef = collection(db, "tasks");
   const lastTaskRef = useRef(null);
@@ -27,8 +29,10 @@ export default function TaskManager() {
     try {
       const q = query(taskRef, orderBy("createdAt", "asc"));
       const snapshot = await getDocs(q);
-      const tasksList = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      console.log("Fetched tasks:", tasksList);
+      const tasksList = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
       setTasks(tasksList);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -38,7 +42,6 @@ export default function TaskManager() {
   const addTask = async () => {
     if (!newTask.trim()) return;
 
-    console.log("Adding task:", newTask.trim());
     try {
       await addDoc(taskRef, {
         title: newTask.trim(),
@@ -47,14 +50,15 @@ export default function TaskManager() {
         category,
         dueDate: dueDate || null,
       });
-      console.log("Task added successfully");
       setNewTask("");
       setCategory("General");
       setDueDate("");
       await fetchTasks();
-
       setTimeout(() => {
-        lastTaskRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        lastTaskRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
       }, 100);
     } catch (error) {
       console.error("Error adding task:", error);
@@ -102,21 +106,37 @@ export default function TaskManager() {
     fetchTasks();
   }, []);
 
-  console.log("Current tasks in state:", tasks);
-
   return (
     <div className="min-h-screen bg-pink-50 dark:bg-gray-900 text-gray-900 dark:text-white flex">
-      <Sidebar />
-      <main className="flex-1 ml-64 px-4 md:px-10 pt-24 md:pt-10">
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(false)} />
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <main className="flex-1 px-4 pt-20 md:pt-10 md:ml-64 transition-all duration-300">
+        {/* Hamburger menu */}
+        <button
+          className="md:hidden fixed top-4 left-4 z-30 text-pink-600"
+          onClick={() => setSidebarOpen(true)}
+        >
+          <Menu size={28} />
+        </button>
+
         <h1 className="text-3xl font-extrabold text-pink-600 mb-8">Task Manager</h1>
 
         {/* Add Task Form */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <input
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="What do you need to do?"
-            className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm col-span-2"
+            className="px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm"
           />
           <input
             type="date"
@@ -134,26 +154,32 @@ export default function TaskManager() {
             <option>Personal</option>
             <option>Urgent</option>
           </select>
+
+          <button
+            onClick={addTask}
+            className="bg-pink-600 hover:bg-pink-700 text-white font-medium px-6 py-3 rounded-lg shadow"
+          >
+            Add Task
+          </button>
         </div>
 
-        <button
-          onClick={addTask}
-          className="bg-pink-600 hover:bg-pink-700 text-white font-medium px-6 py-3 rounded-lg shadow mb-10"
-        >
-          Add Task
-        </button>
-
         {/* Tasks List */}
-        <div className="space-y-4">
+        <div className="space-y-4 pb-20">
           {tasks.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">No tasks yet. Add one above!</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              No tasks yet. Add one above!
+            </p>
           ) : (
             tasks.map((task, index) => (
               <div
                 key={task.id}
                 ref={index === tasks.length - 1 ? lastTaskRef : null}
                 className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl shadow-sm hover:shadow-md transition
-                  ${task.completed ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100" : "bg-white dark:bg-gray-800"}
+                  ${
+                    task.completed
+                      ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100"
+                      : "bg-white dark:bg-gray-800"
+                  }
                 `}
               >
                 <div className="flex items-center gap-3 w-full">
@@ -173,7 +199,9 @@ export default function TaskManager() {
                     />
                   ) : (
                     <span
-                      className={`flex-1 text-base ${task.completed ? "line-through opacity-60" : ""}`}
+                      className={`flex-1 text-base ${
+                        task.completed ? "line-through opacity-60" : ""
+                      }`}
                       onDoubleClick={() => startEditing(task)}
                     >
                       {task.title}
@@ -205,5 +233,6 @@ export default function TaskManager() {
     </div>
   );
 }
+
 
 
