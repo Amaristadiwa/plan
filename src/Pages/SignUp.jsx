@@ -1,6 +1,9 @@
+// src/pages/Signup.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import RoleSelector from "../components/RoleSelector";
+import { auth } from "../firebase";
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -21,13 +24,10 @@ export default function Signup() {
   };
 
   const handleRoleSelect = (role) => {
-    setFormData((prev) => ({
-      ...prev,
-      role,
-    }));
+    setFormData((prev) => ({ ...prev, role }));
   };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   const { name, email, password, role } = formData;
 
@@ -36,78 +36,54 @@ const handleSubmit = (e) => {
     return;
   }
 
-  alert(`Registered as ${role}!`);
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(userCredential.user, { displayName: name });
+    await sendEmailVerification(userCredential.user);
 
-  // Store role in localStorage for later access
-  localStorage.setItem("role", role);
+    localStorage.setItem("role", role);
+    alert(`Registered as ${role}! Verification email sent to ${email}`);
 
-  if (role === "admin") {
-    navigate("/admin");
-  } else {
-    navigate("/couple-dashboard");
+    if (role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/couple-dashboard");
+    }
+  } catch (err) {
+    // ✅ Log error for debugging:
+    console.error("Firebase signup error:", err.code, err.message);
+    setError(err.message); // Show friendly error message to user
   }
 };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4 py-12">
       <div className="max-w-xl w-full bg-white rounded-3xl p-8 shadow-lg">
-        <h2 className="text-3xl font-bold text-pink-600 text-center mb-6">
-          Create Your Account
-        </h2>
+        <h2 className="text-3xl font-bold text-pink-600 text-center mb-6">Create Your Account</h2>
 
-        {/* Role Selector First */}
-        <div>
-          <label className="block text-pink-600 font-semibold mb-2 text-center">
-            Select Your Role
-          </label>
-          <RoleSelector selectedRole={formData.role} onSelect={handleRoleSelect} />
-        </div>
+        <label className="block text-pink-600 font-semibold mb-2 text-center">
+          Select Your Role
+        </label>
+        <RoleSelector selectedRole={formData.role} onSelect={handleRoleSelect} />
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-8">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-            value={formData.name}
-            onChange={handleChange}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} className="w-full px-4 py-3 border rounded-lg" />
+          <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="w-full px-4 py-3 border rounded-lg" />
+          <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} className="w-full px-4 py-3 border rounded-lg" />
 
           {error && <p className="text-red-500 text-center">{error}</p>}
 
-          <button
-            type="submit"
-            className="w-full bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700 transition"
-          >
+          <button type="submit" className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700">
             Sign Up
           </button>
         </form>
 
         <p className="text-center mt-5 text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="text-pink-600 hover:underline">
-            Log in
-          </Link>
+          Already have an account? <Link to="/login" className="text-pink-600 hover:underline">Log in</Link>
         </p>
       </div>
     </div>
   );
 }
+
 

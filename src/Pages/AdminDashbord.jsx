@@ -4,27 +4,25 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip
 } from "recharts";
+import { db } from "../firebase";
+import { collection, getDocs } from "firebase/firestore";
 
-const pieData = [
-  { name: "Completed", value: 75 },
-  { name: "Incomplete", value: 25 },
-];
-
-const COLORS = ["#ec4899", "#f9a8d4"]; // pink shades
-
-const barData = [
-  { name: "User Invites", value: 12 },
-  { name: "Vendor Requests", value: 5 },
-  { name: "Events", value: 8 },
-];
+const COLORS = ["#ec4899", "#f9a8d4"];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
+  // UI states
   const [darkMode, setDarkMode] = useState(false);
   const [showVendorModal, setShowVendorModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Firestore data
+  const [userCount, setUserCount] = useState(0);
+  const [vendorCount, setVendorCount] = useState(0);
+  const [weddingCount, setWeddingCount] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   useEffect(() => {
     const role = localStorage.getItem("role");
@@ -37,7 +35,41 @@ export default function AdminDashboard() {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
-  // Close mobile menu on navigation (optional)
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        setUserCount(usersSnapshot.size);
+
+        const vendorsSnapshot = await getDocs(collection(db, "vendors"));
+        setVendorCount(vendorsSnapshot.size);
+
+        const weddingsSnapshot = await getDocs(collection(db, "weddings"));
+        setWeddingCount(weddingsSnapshot.size);
+
+        const pending = weddingsSnapshot.docs.filter(
+          (doc) => doc.data().status === "pending"
+        );
+        setPendingRequests(pending.length);
+      } catch (error) {
+        console.error("Failed to fetch Firestore data:", error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
+  const pieData = [
+    { name: "Completed", value: 75 },
+    { name: "Incomplete", value: 25 },
+  ];
+
+  const barData = [
+    { name: "User Invites", value: userCount },
+    { name: "Vendor Requests", value: vendorCount },
+    { name: "Events", value: weddingCount },
+  ];
+
   const handleLinkClick = () => {
     setMobileMenuOpen(false);
   };
@@ -58,19 +90,12 @@ export default function AdminDashboard() {
 
       {/* Mobile Sidebar Drawer */}
       {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 flex"
-          role="dialog"
-          aria-modal="true"
-        >
-          {/* Overlay */}
+        <div className="fixed inset-0 z-40 flex" role="dialog" aria-modal="true">
           <div
             className="fixed inset-0 bg-black bg-opacity-50"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
-
-          {/* Sidebar panel */}
           <aside className="relative flex flex-col w-64 bg-white dark:bg-gray-800 shadow-lg p-6">
             <button
               className="self-end mb-4 text-pink-600 hover:text-pink-800"
@@ -93,51 +118,22 @@ export default function AdminDashboard() {
 
       {/* Mobile Top Navbar */}
       <nav className="md:hidden bg-white dark:bg-gray-800 shadow p-4 flex justify-between items-center w-full fixed top-0 left-0 z-50">
-        {/* Hamburger Button */}
         <button
           onClick={() => setMobileMenuOpen(true)}
           className="text-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-300 rounded"
           aria-label="Open menu"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-
         <h2 className="text-xl font-bold text-pink-600">Wedding Admin</h2>
-
-        <div className="space-x-4 flex items-center">
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="bg-pink-500 px-3 py-1 rounded-full text-white text-sm"
-          >
-            {darkMode ? "Light" : "Dark"}
-          </button>
-          <button
-            onClick={() => {
-              localStorage.removeItem("role");
-              navigate("/login");
-            }}
-            className="text-sm text-pink-600 underline"
-          >
-            Logout
-          </button>
-        </div>
       </nav>
 
       {/* Main Content */}
       <main className="flex-1 pt-20 md:pt-10 px-4 md:px-10 overflow-auto">
-        {/* Top Navbar (hidden on mobile since mobile has fixed navbar) */}
         <div className="hidden md:flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-pink-600">Admin Dashboard</h1>
           <div className="flex items-center space-x-4">
@@ -183,15 +179,12 @@ export default function AdminDashboard() {
         {/* Info Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
           {[
-            { label: "Total Users", value: 120 },
-            { label: "Vendors", value: 35 },
-            { label: "Weddings Planned", value: 47 },
-            { label: "Pending Requests", value: 8 },
+            { label: "Total Users", value: userCount },
+            { label: "Vendors", value: vendorCount },
+            { label: "Weddings Planned", value: weddingCount },
+            { label: "Pending Requests", value: pendingRequests },
           ].map((card, i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center"
-            >
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center">
               <h3 className="text-sm text-gray-500 dark:text-gray-300">{card.label}</h3>
               <p className="text-3xl font-bold text-pink-600 mt-2">{card.value}</p>
             </div>
@@ -200,7 +193,6 @@ export default function AdminDashboard() {
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Pie Chart */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
             <h3 className="text-lg font-semibold text-pink-600 mb-4">Task Completion</h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -221,7 +213,6 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Bar Chart */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
             <h3 className="text-lg font-semibold text-pink-600 mb-4">Overview Stats</h3>
             <ResponsiveContainer width="100%" height={250}>
@@ -235,44 +226,9 @@ export default function AdminDashboard() {
           </div>
         </div>
       </main>
-
-      {/* Modals */}
-      {showVendorModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full">
-            <h2 className="text-xl font-bold text-pink-600 mb-4">Add Vendor</h2>
-            <input
-              placeholder="Vendor Name"
-              className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <button
-              onClick={() => setShowVendorModal(false)}
-              className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded dark:bg-gray-700 dark:text-white"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full">
-            <h2 className="text-xl font-bold text-pink-600 mb-4">Add User</h2>
-            <input
-              placeholder="User Name"
-              className="w-full p-2 border rounded mb-4 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <button
-              onClick={() => setShowUserModal(false)}
-              className="mt-2 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded dark:bg-gray-700 dark:text-white"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
+
 

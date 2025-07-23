@@ -9,7 +9,7 @@ export default function Budget() {
 
   const handleNext = (e) => {
     e.preventDefault();
-    navigate('/planning-summary');
+    navigate("/start/planning-summary");
   };
 
   const handleBudgetChange = (e) => {

@@ -1,5 +1,8 @@
+// src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth"; // Removed sendEmailVerification
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -13,7 +16,7 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { email, password } = formData;
 
@@ -22,19 +25,20 @@ export default function Login() {
       return;
     }
 
-    const role = localStorage.getItem("role");
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    if (!role) {
-      setError("No role found. Please sign up first.");
-      return;
-    }
+      const role = localStorage.getItem("role");
+      alert(`Logged in as ${role}!`);
 
-    alert(`Logged in as ${role}!`);
-
-    if (role === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/couple-dashboard"); // or /vendor-dashboard, /couple-dashboard
+      if (role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/couple-dashboard");
+      }
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -49,7 +53,7 @@ export default function Login() {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+            className="w-full px-4 py-3 border rounded-lg"
           />
           <input
             type="password"
@@ -57,13 +61,13 @@ export default function Login() {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+            className="w-full px-4 py-3 border rounded-lg"
           />
           {error && <p className="text-red-500 text-center">{error}</p>}
 
           <button
             type="submit"
-            className="w-full bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700 transition"
+            className="w-full bg-pink-600 text-white py-3 rounded-lg hover:bg-pink-700"
           >
             Log In
           </button>
@@ -72,4 +76,7 @@ export default function Login() {
     </div>
   );
 }
+
+
+
 
