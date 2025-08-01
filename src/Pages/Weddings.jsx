@@ -1,79 +1,94 @@
+// src/pages/Weddings.jsx
 import React, { useState } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function Weddings() {
-  const [weddings, setWeddings] = useState([
-    { id: 1, couple: "Elsie & Tadiwa", date: "2025-12-01", location: "Harare" },
-    { id: 2, couple: "John & Mary", date: "2026-01-15", location: "Bulawayo" },
-  ]);
   const [newCouple, setNewCouple] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newLocation, setNewLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const addWedding = () => {
-    if (!newCouple.trim() || !newDate || !newLocation.trim()) return;
-    setWeddings((prev) => [
-      ...prev,
-      {
-        id: prev.length + 1,
+  const addWedding = async () => {
+    if (!newCouple.trim() || !newDate || !newLocation.trim()) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await addDoc(collection(db, "weddings"), {
         couple: newCouple.trim(),
         date: newDate,
         location: newLocation.trim(),
-      },
-    ]);
-    setNewCouple("");
-    setNewDate("");
-    setNewLocation("");
+        isComplete: false, // default value, adjust if you track status
+        createdAt: serverTimestamp(),
+      });
+
+      setNewCouple("");
+      setNewDate("");
+      setNewLocation("");
+    } catch (err) {
+      setError("Failed to add wedding. Try again.");
+      console.error(err);
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div className="p-10 bg-pink-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-white">
-      <h1 className="text-3xl font-bold text-pink-600 mb-6">Weddings</h1>
+    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 p-8 flex flex-col items-center">
+      <h1 className="text-4xl font-extrabold text-pink-700 mb-8 drop-shadow-md">
+        Weddings
+      </h1>
 
-      {/* Add Wedding Form */}
-      <div className="mb-6 space-y-2 max-w-md">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          addWedding();
+        }}
+        className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-md space-y-5"
+      >
         <input
           type="text"
           placeholder="Couple Names (e.g., Elsie & Tadiwa)"
           value={newCouple}
           onChange={(e) => setNewCouple(e.target.value)}
-          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
+          className="w-full px-4 py-3 rounded-lg border border-pink-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-300 dark:bg-gray-800 dark:border-gray-700 dark:focus:ring-pink-600 dark:text-white transition"
+          required
+          disabled={loading}
         />
         <input
           type="date"
           value={newDate}
           onChange={(e) => setNewDate(e.target.value)}
-          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
+          className="w-full px-4 py-3 rounded-lg border border-pink-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-300 dark:bg-gray-800 dark:border-gray-700 dark:focus:ring-pink-600 dark:text-white transition"
+          required
+          disabled={loading}
         />
         <input
           type="text"
           placeholder="Location"
           value={newLocation}
           onChange={(e) => setNewLocation(e.target.value)}
-          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
+          className="w-full px-4 py-3 rounded-lg border border-pink-300 focus:border-pink-500 focus:ring-2 focus:ring-pink-300 dark:bg-gray-800 dark:border-gray-700 dark:focus:ring-pink-600 dark:text-white transition"
+          required
+          disabled={loading}
         />
         <button
-          onClick={addWedding}
-          className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600"
+          type="submit"
+          className="w-full bg-pink-600 hover:bg-pink-700 transition text-white font-semibold py-3 rounded-lg shadow-md"
+          disabled={loading}
         >
-          Add Wedding
+          {loading ? "Adding..." : "Add Wedding"}
         </button>
-      </div>
-
-      {/* Weddings List */}
-      <ul className="space-y-3 max-w-xl">
-        {weddings.map(({ id, couple, date, location }) => (
-          <li
-            key={id}
-            className="p-4 bg-white dark:bg-gray-800 rounded shadow flex justify-between items-center"
-          >
-            <div>
-              <p className="font-semibold">{couple}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{date} - {location}</p>
-            </div>
-            {/* Future: Add Edit/Delete buttons here */}
-          </li>
-        ))}
-      </ul>
+        {error && <p className="text-red-600 mt-2">{error}</p>}
+      </form>
     </div>
   );
 }
+
+

@@ -2,8 +2,16 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import RoleSelector from "../components/RoleSelector";
-import { auth } from "../firebase";
-import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
+import { auth, db } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import {
+  doc,
+  setDoc,
+  serverTimestamp
+} from "firebase/firestore";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -27,34 +35,45 @@ export default function Signup() {
     setFormData((prev) => ({ ...prev, role }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const { name, email, password, role } = formData;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { name, email, password, role } = formData;
 
-  if (!name || !email || !password || !role) {
-    setError("Please fill in all fields and select a role.");
-    return;
-  }
-
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(userCredential.user, { displayName: name });
-    await sendEmailVerification(userCredential.user);
-
-    localStorage.setItem("role", role);
-    alert(`Registered as ${role}! Verification email sent to ${email}`);
-
-    if (role === "admin") {
-      navigate("/admin");
-    } else {
-      navigate("/couple-dashboard");
+    if (!name || !email || !password || !role) {
+      setError("Please fill in all fields and select a role.");
+      return;
     }
-  } catch (err) {
-    // ✅ Log error for debugging:
-    console.error("Firebase signup error:", err.code, err.message);
-    setError(err.message); // Show friendly error message to user
-  }
-};
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Set display name
+      await updateProfile(user, { displayName: name });
+
+      // Save user to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name,
+        email,
+        role,
+        createdAt: serverTimestamp(),
+      });
+
+      localStorage.setItem("role", role);
+      alert(`Registered successfully as ${role}`);
+
+      // Navigate to respective dashboard
+      if (role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/couple-dashboard");
+      }
+
+    } catch (err) {
+      console.error("Signup error:", err.code, err.message);
+      setError("Signup failed. " + err.message);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-pink-50 px-4 py-12">
@@ -67,9 +86,30 @@ const handleSubmit = async (e) => {
         <RoleSelector selectedRole={formData.role} onSelect={handleRoleSelect} />
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-8">
-          <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} className="w-full px-4 py-3 border rounded-lg" />
-          <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="w-full px-4 py-3 border rounded-lg" />
-          <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} className="w-full px-4 py-3 border rounded-lg" />
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border rounded-lg"
+          />
 
           {error && <p className="text-red-500 text-center">{error}</p>}
 
@@ -79,11 +119,13 @@ const handleSubmit = async (e) => {
         </form>
 
         <p className="text-center mt-5 text-gray-600">
-          Already have an account? <Link to="/login" className="text-pink-600 hover:underline">Log in</Link>
+          Already have an account?{" "}
+          <Link to="/login" className="text-pink-600 hover:underline">Log in</Link>
         </p>
       </div>
     </div>
   );
 }
+
 
 

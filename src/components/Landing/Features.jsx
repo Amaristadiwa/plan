@@ -20,23 +20,28 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="py-16 px-6 bg-white">
-      <h3 className="text-3xl font-bold text-center text-blue-700">
-        Why Choose Wedding Bells?
-      </h3>
-      <div className="mt-10 grid md:grid-cols-3 gap-6">
+    <section className="py-20 px-6 bg-gradient-to-b from-white to-pink-50">
+      <h3 className="text-4xl font-bold text-center text-pink-600 font-serif">Why Choose Wedding Bells?</h3>
+
+      <div className="mt-12 grid md:grid-cols-3 gap-8">
         {features.map((feature, index) => (
-          <div key={index} className="rounded-lg shadow-md p-4 bg-blue-50 text-center">
+          <div
+            key={index}
+            className="rounded-2xl overflow-hidden shadow-lg transform transition hover:scale-105 bg-white"
+          >
             <img
               src={feature.image}
               alt={feature.title}
-              className="w-full h-40 object-cover rounded"
+              className="w-full h-56 object-cover"
             />
-            <h4 className="mt-4 text-xl font-semibold text-pink-500">{feature.title}</h4>
-            <p className="text-gray-600">{feature.desc}</p>
+            <div className="p-6 text-center">
+              <h4 className="text-2xl font-semibold text-pink-500">{feature.title}</h4>
+              <p className="text-gray-600 mt-2">{feature.desc}</p>
+            </div>
           </div>
         ))}
       </div>
     </section>
   );
 }
+

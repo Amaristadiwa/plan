@@ -5,6 +5,7 @@ import Features from "../components/Landing/Features";
 import CTA from "../components/Landing/CTA";
 import Footer from "../components/Footer";
 import Testimonials from "../components/Landing/Testimonials";
+import Gallery from "../components/Landing/Gallery";
 
 export default function Landing() {
   return (
@@ -14,6 +15,7 @@ export default function Landing() {
       <Features />
       <CTA />
       <Testimonials />
+      <Gallery />
       <Footer />
     </div>
   );
